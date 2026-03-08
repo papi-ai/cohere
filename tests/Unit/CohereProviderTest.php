@@ -41,7 +41,7 @@ class TestableCohereProvider extends CohereProvider
         $this->lastPayload = $payload;
 
         if ($this->fakeHttpCode !== null && $this->fakeHttpCode >= 400) {
-            $this->simulateError($this->fakeHttpCode, $this->fakeResponse);
+            $this->handleError($this->fakeHttpCode, $this->fakeResponse);
         }
 
         return $this->fakeResponse;
@@ -61,30 +61,15 @@ class TestableCohereProvider extends CohereProvider
         $this->lastPayload = $payload;
 
         if ($this->fakeEmbeddingHttpCode !== null && $this->fakeEmbeddingHttpCode >= 400) {
-            $this->simulateError($this->fakeEmbeddingHttpCode, $this->fakeEmbeddingResponse);
+            $this->handleError($this->fakeEmbeddingHttpCode, $this->fakeEmbeddingResponse);
         }
 
         return $this->fakeEmbeddingResponse;
     }
 
-    private function simulateError(int $httpCode, array $data): void
+    public function callHandleError(int $httpCode, ?array $data): void
     {
-        $errorMessage = $data['message'] ?? 'Unknown error';
-
-        if ($httpCode === 401) {
-            throw new AuthenticationException('cohere');
-        }
-
-        if ($httpCode === 429) {
-            throw new RateLimitException('cohere');
-        }
-
-        throw new ProviderException(
-            "Cohere API error ({$httpCode}): {$errorMessage}",
-            'cohere',
-            $httpCode,
-            $data,
-        );
+        $this->handleError($httpCode, $data);
     }
 }
 
@@ -470,6 +455,33 @@ describe('CohereProvider', function () {
 
             expect(fn () => $this->provider->embed('Hello'))
                 ->toThrow(AuthenticationException::class);
+        });
+    });
+
+    describe('handleError mapping', function () {
+        it('throws AuthenticationException for 401', function () {
+            expect(fn () => $this->provider->callHandleError(401, ['message' => 'Unauthorized']))
+                ->toThrow(\PapiAI\Core\Exception\AuthenticationException::class);
+        });
+
+        it('throws RateLimitException for 429', function () {
+            expect(fn () => $this->provider->callHandleError(429, ['message' => 'Too many requests']))
+                ->toThrow(\PapiAI\Core\Exception\RateLimitException::class);
+        });
+
+        it('throws ProviderException for 500 with message', function () {
+            expect(fn () => $this->provider->callHandleError(500, ['message' => 'Server error']))
+                ->toThrow(\PapiAI\Core\Exception\ProviderException::class);
+        });
+
+        it('throws ProviderException with nested error message', function () {
+            expect(fn () => $this->provider->callHandleError(503, ['error' => ['message' => 'Service unavailable']]))
+                ->toThrow(\PapiAI\Core\Exception\ProviderException::class);
+        });
+
+        it('throws ProviderException with null data', function () {
+            expect(fn () => $this->provider->callHandleError(500, null))
+                ->toThrow(\PapiAI\Core\Exception\ProviderException::class);
         });
     });
 });

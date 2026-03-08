@@ -271,7 +271,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
     /**
      * Handle error responses from the Cohere API.
      */
-    private function handleError(int $httpCode, ?array $data): void
+    protected function handleError(int $httpCode, ?array $data): void
     {
         $errorMessage = $data['message'] ?? $data['error']['message'] ?? 'Unknown error';
 
