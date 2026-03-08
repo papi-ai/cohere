@@ -28,12 +28,13 @@ use PapiAI\Core\StreamChunk;
 use PapiAI\Core\ToolCall;
 
 /**
- * Cohere API Provider.
+ * Cohere API provider for PapiAI.
  *
- * Supports Cohere models including:
- * - command-r-plus (general purpose, default)
- * - command-r (fast, efficient)
- * - command (lightweight)
+ * Bridges PapiAI's core types with Cohere's v2 Chat API, handling format conversion.
+ * Supports chat completions, streaming, tool calling, and embeddings.
+ * Authentication via Bearer token. All HTTP via ext-curl.
+ *
+ * @see https://docs.cohere.com/reference/chat
  */
 class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
 {
@@ -47,12 +48,28 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
     public const MODEL_EMBED_ENGLISH = 'embed-english-v3.0';
     public const MODEL_EMBED_MULTILINGUAL = 'embed-multilingual-v3.0';
 
+    /**
+     * @param string $apiKey      Cohere API key used as Bearer token
+     * @param string $defaultModel Default model for chat requests
+     */
     public function __construct(
         private readonly string $apiKey,
         private readonly string $defaultModel = self::MODEL_COMMAND_R_PLUS,
     ) {
     }
 
+    /**
+     * Send a chat completion request to the Cohere v2 API.
+     *
+     * @param array<Message> $messages Conversation messages
+     * @param array<string, mixed> $options Options including model, maxTokens, temperature, stopSequences, and tools
+     *
+     * @return Response Parsed response with text, tool calls, and usage
+     *
+     * @throws AuthenticationException When the API key is invalid
+     * @throws RateLimitException      When rate limits are exceeded
+     * @throws ProviderException       When the API returns an error
+     */
     public function chat(array $messages, array $options = []): Response
     {
         $payload = $this->buildPayload($messages, $options);
@@ -61,6 +78,16 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
         return $this->parseResponse($response, $messages);
     }
 
+    /**
+     * Stream a chat completion response from the Cohere v2 API via SSE.
+     *
+     * @param array<Message> $messages Conversation messages
+     * @param array<string, mixed> $options Options including model, maxTokens, temperature, stopSequences, and tools
+     *
+     * @return iterable<StreamChunk> Yields stream chunks as they arrive
+     *
+     * @throws ProviderException When the API request fails
+     */
     public function stream(array $messages, array $options = []): iterable
     {
         $payload = $this->buildPayload($messages, $options);
@@ -77,6 +104,18 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
         }
     }
 
+    /**
+     * Generate embeddings for the given input text(s) via Cohere's Embed API.
+     *
+     * @param string|array<string> $input  Single text or array of texts to embed
+     * @param array<string, mixed> $options Options including model (defaults to embed-english-v3.0)
+     *
+     * @return EmbeddingResponse Embeddings with usage metadata
+     *
+     * @throws AuthenticationException When the API key is invalid
+     * @throws RateLimitException      When rate limits are exceeded
+     * @throws ProviderException       When the API returns an error
+     */
     public function embed(string|array $input, array $options = []): EmbeddingResponse
     {
         $model = $options['model'] ?? self::MODEL_EMBED_ENGLISH;
@@ -102,21 +141,33 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
         );
     }
 
+    /**
+     * Whether this provider supports tool calling.
+     */
     public function supportsTool(): bool
     {
         return true;
     }
 
+    /**
+     * Whether this provider supports vision/image inputs.
+     */
     public function supportsVision(): bool
     {
         return false;
     }
 
+    /**
+     * Whether this provider supports structured output (JSON mode).
+     */
     public function supportsStructuredOutput(): bool
     {
         return false;
     }
 
+    /**
+     * Get the provider identifier.
+     */
     public function getName(): string
     {
         return 'cohere';
@@ -270,6 +321,13 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
 
     /**
      * Handle error responses from the Cohere API.
+     *
+     * @param int        $httpCode HTTP status code
+     * @param array<string, mixed>|null $data     Decoded response body
+     *
+     * @throws AuthenticationException When status is 401
+     * @throws RateLimitException      When status is 429
+     * @throws ProviderException       For all other error statuses
      */
     protected function handleError(int $httpCode, ?array $data): void
     {
@@ -292,7 +350,13 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
     }
 
     /**
-     * Make an API request.
+     * Make a synchronous chat API request via cURL.
+     *
+     * @param array<string, mixed> $payload JSON-encodable request body
+     *
+     * @return array<string, mixed> Decoded JSON response
+     *
+     * @throws ProviderException When the cURL request fails or API returns an error
      */
     protected function request(array $payload): array
     {
@@ -331,9 +395,13 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
     }
 
     /**
-     * Make a streaming API request.
+     * Make a streaming chat API request and parse SSE events.
      *
-     * @return Generator<array>
+     * Buffers the full response then parses SSE data lines into decoded events.
+     *
+     * @param array<string, mixed> $payload JSON-encodable request body with stream=true
+     *
+     * @return Generator<int, array<string, mixed>> Yields decoded SSE event arrays
      */
     protected function streamRequest(array $payload): Generator
     {
@@ -375,7 +443,13 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
     }
 
     /**
-     * Make an embeddings API request.
+     * Make an embeddings API request via cURL.
+     *
+     * @param array<string, mixed> $payload JSON-encodable request body
+     *
+     * @return array<string, mixed> Decoded JSON response
+     *
+     * @throws ProviderException When the cURL request fails or API returns an error
      */
     protected function embeddingRequest(array $payload): array
     {
