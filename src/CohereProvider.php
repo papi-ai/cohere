@@ -82,7 +82,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
      * Stream a chat completion response from the Cohere v2 API via SSE.
      *
      * @param array<Message> $messages Conversation messages
-     * @param array<string, mixed> $options Options including model, maxTokens, temperature, stopSequences, and tools
+     * @param array<array-key, mixed> $options Options including model, maxTokens, temperature, stopSequences, and tools
      *
      * @return iterable<StreamChunk> Yields stream chunks as they arrive
      *
