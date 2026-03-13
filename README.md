@@ -1,6 +1,6 @@
 # PapiAI Cohere Provider
 
-[![Tests](https://github.com/papi-ai/cohere/workflows/CI/badge.svg)](https://github.com/papi-ai/cohere/actions?query=workflow%3ACI)
+[![CI](https://github.com/papi-ai/cohere/workflows/CI/badge.svg)](https://github.com/papi-ai/cohere/actions?query=workflow%3ACI) [![Latest Version](https://img.shields.io/packagist/v/papi-ai/cohere.svg)](https://packagist.org/packages/papi-ai/cohere) [![Total Downloads](https://img.shields.io/packagist/dt/papi-ai/cohere.svg)](https://packagist.org/packages/papi-ai/cohere) [![PHP Version](https://img.shields.io/packagist/php-v/papi-ai/cohere.svg)](https://packagist.org/packages/papi-ai/cohere) [![License](https://img.shields.io/packagist/l/papi-ai/cohere.svg)](https://packagist.org/packages/papi-ai/cohere)
 
 Cohere provider for [PapiAI](https://github.com/papi-ai/papi-core) - A simple but powerful PHP library for building AI agents.
 
