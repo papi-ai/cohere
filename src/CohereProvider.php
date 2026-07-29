@@ -26,6 +26,7 @@ use PapiAI\Core\Response;
 use PapiAI\Core\Role;
 use PapiAI\Core\StreamChunk;
 use PapiAI\Core\ToolCall;
+use PapiAI\Core\ToolChoice;
 
 /**
  * Cohere API provider for PapiAI.
@@ -62,13 +63,14 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
      * Send a chat completion request to the Cohere v2 API.
      *
      * @param array<Message> $messages Conversation messages
-     * @param array<string, mixed> $options Options including model, maxTokens, temperature, stopSequences, and tools
+     * @param array<string, mixed> $options Options including model, maxTokens, temperature, stopSequences,
+     *   tools, and toolChoice ("auto", "none" or "required"; naming a specific tool is not supported here)
      *
      * @return Response Parsed response with text, tool calls, and usage
      *
      * @throws AuthenticationException When the API key is invalid
      * @throws RateLimitException      When rate limits are exceeded
-     * @throws ProviderException       When the API returns an error
+     * @throws ProviderException       When the API returns an error, or toolChoice names a specific tool
      */
     public function chat(array $messages, array $options = []): Response
     {
@@ -246,6 +248,29 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
         // Handle tools
         if (isset($options['tools']) && !empty($options['tools'])) {
             $payload['tools'] = $this->convertTools($options['tools']);
+        }
+
+        // Forced tool choice. Cohere v2 takes uppercase REQUIRED or NONE, and has no mechanism for
+        // forcing one *named* tool, so that case fails loudly rather than quietly downgrading to
+        // "some tool". Omitting the field is how Cohere spells auto: the documented default is that
+        // the model chooses freely, and there is no AUTO value to send.
+        // Note: tool_choice needs command-r7b or newer, so an older model will reject it upstream.
+        if (isset($options['toolChoice'])) {
+            $choice = ToolChoice::fromOption($options['toolChoice'], $options['tools'] ?? []);
+
+            if ($choice->forcesSpecificTool()) {
+                throw new ProviderException(
+                    sprintf(
+                        'Cohere cannot force a specific tool; tool_choice accepts only REQUIRED or NONE. Use "required" to insist on a tool call, or drop to a provider that supports naming "%s".',
+                        (string) $choice->toolName,
+                    ),
+                    $this->getName(),
+                );
+            }
+
+            if (!empty($options['tools']) && !$choice->isAuto()) {
+                $payload['tool_choice'] = $choice->mode === ToolChoice::NONE ? 'NONE' : 'REQUIRED';
+            }
         }
 
         return $payload;
