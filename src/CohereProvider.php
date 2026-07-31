@@ -17,6 +17,7 @@ namespace PapiAI\Cohere;
 use Generator;
 use PapiAI\Core\Contracts\EmbeddingProviderInterface;
 use PapiAI\Core\Contracts\ProviderInterface;
+use PapiAI\Core\Contracts\ToolSelectableInterface;
 use PapiAI\Core\EmbeddingResponse;
 use PapiAI\Core\Exception\AuthenticationException;
 use PapiAI\Core\Exception\ProviderException;
@@ -40,7 +41,7 @@ use PapiAI\Core\ToolChoice;
  * degrades nothing the caller was promised, which is why it is silent where an unhonourable
  * `toolChoice` throws.
  */
-class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
+class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, ToolSelectableInterface
 {
     private const CHAT_API_URL = 'https://api.cohere.com/v2/chat';
     private const EMBED_API_URL = 'https://api.cohere.com/v1/embed';
