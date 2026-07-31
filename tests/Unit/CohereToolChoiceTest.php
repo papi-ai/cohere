@@ -13,6 +13,8 @@
 declare(strict_types=1);
 
 use PapiAI\Cohere\CohereProvider;
+use PapiAI\Core\Contracts\NamedToolSelectableInterface;
+use PapiAI\Core\Contracts\ToolSelectableInterface;
 use PapiAI\Core\Exception\ProviderException;
 use PapiAI\Core\Message;
 
@@ -92,5 +94,13 @@ describe('CohereProvider tool choice', function () {
     it('throws when required is asked for with no tools declared', function () {
         expect(fn () => ($this->chat)(['toolChoice' => 'required']))
             ->toThrow(InvalidArgumentException::class);
+    });
+});
+
+describe('CohereProvider tool-selection capability', function () {
+    it('declares what it can force, so callers can ask instead of catching', function () {
+        // Cohere can force "required" or "none", but its API cannot name a tool.
+        expect(is_subclass_of(CohereProvider::class, ToolSelectableInterface::class))->toBeTrue();
+        expect(is_subclass_of(CohereProvider::class, NamedToolSelectableInterface::class))->toBeFalse();
     });
 });

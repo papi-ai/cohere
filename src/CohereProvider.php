@@ -17,6 +17,7 @@ namespace PapiAI\Cohere;
 use Generator;
 use PapiAI\Core\Contracts\EmbeddingProviderInterface;
 use PapiAI\Core\Contracts\ProviderInterface;
+use PapiAI\Core\Contracts\ToolSelectableInterface;
 use PapiAI\Core\EmbeddingResponse;
 use PapiAI\Core\Exception\AuthenticationException;
 use PapiAI\Core\Exception\ProviderException;
@@ -35,15 +36,26 @@ use PapiAI\Core\ToolChoice;
  * Supports chat completions, streaming, tool calling, and embeddings.
  * Authentication via Bearer token. All HTTP via ext-curl.
  *
- * @see https://docs.cohere.com/reference/chat
+ * @see https://docs.cohere.com/reference/chat *
+ * The neutral `effort` option is accepted and ignored here. Cohere exposes no reasoning-effort parameter on the v2 chat API. Ignoring it
+ * degrades nothing the caller was promised, which is why it is silent where an unhonourable
+ * `toolChoice` throws.
  */
-class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
+class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, ToolSelectableInterface
 {
     private const CHAT_API_URL = 'https://api.cohere.com/v2/chat';
     private const EMBED_API_URL = 'https://api.cohere.com/v1/embed';
 
+    public const MODEL_COMMAND_A_PLUS = 'command-a-plus-05-2026';
+    public const MODEL_COMMAND_A = 'command-a-03-2025';
+    public const MODEL_COMMAND_A_REASONING = 'command-a-reasoning-08-2025';
+    public const MODEL_COMMAND_R7B = 'command-r7b-12-2024';
+
+    /** @deprecated Deprecated 15 September 2025, and predates command-r7b so it rejects tool_choice. */
     public const MODEL_COMMAND_R_PLUS = 'command-r-plus';
+    /** @deprecated Deprecated 15 September 2025, and predates command-r7b so it rejects tool_choice. */
     public const MODEL_COMMAND_R = 'command-r';
+    /** @deprecated Deprecated 15 September 2025. */
     public const MODEL_COMMAND = 'command';
 
     public const MODEL_EMBED_ENGLISH = 'embed-english-v3.0';
@@ -55,7 +67,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface
      */
     public function __construct(
         private readonly string $apiKey,
-        private readonly string $defaultModel = self::MODEL_COMMAND_R_PLUS,
+        private readonly string $defaultModel = self::MODEL_COMMAND_A_PLUS,
     ) {
     }
 
