@@ -162,7 +162,7 @@ describe('CohereProvider', function () {
 
             $this->provider->chat([Message::user('Hello')]);
 
-            expect($this->provider->lastPayload['model'])->toBe('command-r-plus');
+            expect($this->provider->lastPayload['model'])->toBe('command-a-plus-05-2026');
         });
 
         it('overrides model and options from parameters', function () {
