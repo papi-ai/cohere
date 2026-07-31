@@ -34,10 +34,14 @@ echo $response->text;
 ### Chat Models
 
 ```php
-CohereProvider::MODEL_COMMAND_R_PLUS  // 'command-r-plus' (default)
-CohereProvider::MODEL_COMMAND_R       // 'command-r'
-CohereProvider::MODEL_COMMAND         // 'command'
+CohereProvider::MODEL_COMMAND_A_PLUS      // 'command-a-plus-05-2026' (default)
+CohereProvider::MODEL_COMMAND_A           // 'command-a-03-2025'
+CohereProvider::MODEL_COMMAND_A_REASONING // 'command-a-reasoning-08-2025'
+CohereProvider::MODEL_COMMAND_R7B         // 'command-r7b-12-2024'
 ```
+
+The `MODEL_COMMAND`, `MODEL_COMMAND_R` and `MODEL_COMMAND_R_PLUS` constants are still shipped but deprecated: all three were deprecated on 15 September 2025, and the two oldest predate `command-r7b`, so they reject forced tool choice.
+
 
 ### Embedding Models
 
