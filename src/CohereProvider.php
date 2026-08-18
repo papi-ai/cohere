@@ -413,8 +413,6 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
 
-        curl_close($ch);
-
         if ($error !== '') {
             throw new ProviderException(
                 "Cohere API request failed: {$error}",
@@ -460,7 +458,6 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
         ]);
 
         curl_exec($ch);
-        curl_close($ch);
 
         // Parse SSE events
         $lines = explode("\n", $buffer);
@@ -505,8 +502,6 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
-
-        curl_close($ch);
 
         if ($error !== '') {
             throw new ProviderException(
