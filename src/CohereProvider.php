@@ -46,20 +46,21 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
     private const CHAT_API_URL = 'https://api.cohere.com/v2/chat';
     private const EMBED_API_URL = 'https://api.cohere.com/v1/embed';
 
-    public const MODEL_COMMAND_A_PLUS = 'command-a-plus-05-2026';
-    public const MODEL_COMMAND_A = 'command-a-03-2025';
-    public const MODEL_COMMAND_A_REASONING = 'command-a-reasoning-08-2025';
-    public const MODEL_COMMAND_R7B = 'command-r7b-12-2024';
+    public const MODEL_COMMAND_A_PLUS = CohereModel::CommandAPlus->value;
+    public const MODEL_COMMAND_A = CohereModel::CommandA->value;
+    public const MODEL_COMMAND_A_REASONING = CohereModel::CommandAReasoning->value;
+    public const MODEL_COMMAND_R7B = CohereModel::CommandR7b->value;
 
     /** @deprecated Deprecated 15 September 2025, and predates command-r7b so it rejects tool_choice. */
-    public const MODEL_COMMAND_R_PLUS = 'command-r-plus';
+    public const MODEL_COMMAND_R_PLUS = CohereModel::CommandRPlus->value;
     /** @deprecated Deprecated 15 September 2025, and predates command-r7b so it rejects tool_choice. */
-    public const MODEL_COMMAND_R = 'command-r';
+    public const MODEL_COMMAND_R = CohereModel::CommandR->value;
     /** @deprecated Deprecated 15 September 2025. */
-    public const MODEL_COMMAND = 'command';
+    public const MODEL_COMMAND = CohereModel::Command->value;
 
-    public const MODEL_EMBED_ENGLISH = 'embed-english-v3.0';
-    public const MODEL_EMBED_MULTILINGUAL = 'embed-multilingual-v3.0';
+    public const MODEL_EMBED_V4 = CohereModel::EmbedV4->value;
+    public const MODEL_EMBED_ENGLISH = CohereModel::EmbedEnglish->value;
+    public const MODEL_EMBED_MULTILINGUAL = CohereModel::EmbedMultilingual->value;
 
     /**
      * @param string $apiKey      Cohere API key used as Bearer token
