@@ -46,6 +46,7 @@ The `MODEL_COMMAND`, `MODEL_COMMAND_R` and `MODEL_COMMAND_R_PLUS` constants are 
 ### Embedding Models
 
 ```php
+CohereProvider::MODEL_EMBED_V4            // 'embed-v4.0'
 CohereProvider::MODEL_EMBED_ENGLISH       // 'embed-english-v3.0'
 CohereProvider::MODEL_EMBED_MULTILINGUAL  // 'embed-multilingual-v3.0'
 ```
