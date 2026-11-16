@@ -25,6 +25,7 @@ use PapiAI\Core\Exception\RateLimitException;
 use PapiAI\Core\Message;
 use PapiAI\Core\Response;
 use PapiAI\Core\Role;
+use PapiAI\Core\StopReason;
 use PapiAI\Core\StreamChunk;
 use PapiAI\Core\ToolCall;
 use PapiAI\Core\ToolChoice;
@@ -225,6 +226,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
             messages: $messages,
             usage: $usage,
             stopReason: $response['finish_reason'] ?? null,
+            stoppedBecause: $this->stoppedBecauseOf($response['finish_reason'] ?? null),
         );
     }
 
@@ -518,5 +520,18 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
         }
 
         return $data;
+    }
+
+    /**
+     * Why the model stopped, in core's vocabulary.
+     */
+    private function stoppedBecauseOf(?string $finishReason): StopReason
+    {
+        return match ($finishReason) {
+            'COMPLETE', 'STOP_SEQUENCE' => StopReason::Stop,
+            'MAX_TOKENS' => StopReason::MaxTokens,
+            'TOOL_CALL' => StopReason::ToolCalls,
+            default => StopReason::Other,
+        };
     }
 }
