@@ -312,7 +312,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
                     'type' => 'function',
                     'function' => [
                         'name' => $tc->name,
-                        'arguments' => json_encode($tc->arguments),
+                        'arguments' => $tc->argumentsAsJson(),
                     ],
                 ];
             }, $message->toolCalls);
