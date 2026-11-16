@@ -21,6 +21,7 @@ use PapiAI\Core\Exception\ProviderException;
 use PapiAI\Core\Exception\RateLimitException;
 use PapiAI\Core\Message;
 use PapiAI\Core\Response;
+use PapiAI\Core\StopReason;
 use PapiAI\Core\StreamChunk;
 use PapiAI\Core\ToolCall;
 
@@ -483,5 +484,31 @@ describe('CohereProvider', function () {
             expect(fn () => $this->provider->callHandleError(500, null))
                 ->toThrow(\PapiAI\Core\Exception\ProviderException::class);
         });
+    });
+});
+
+describe('CohereProvider stop reason', function () {
+    beforeEach(function () {
+        $this->provider = new TestableCohereProvider('test-api-key');
+        $this->stoppedBecause = function (string $raw): StopReason {
+            $this->provider->fakeResponse = ['message' => ['content' => [['type' => 'text', 'text' => 'x']]], 'finish_reason' => $raw];
+
+            return $this->provider->chat([Message::user('Hi')])->stoppedBecause;
+        };
+    });
+
+    it('says why the model stopped in core\'s vocabulary', function () {
+        $reasons = [
+            'COMPLETE' => StopReason::Stop,
+            'STOP_SEQUENCE' => StopReason::Stop,
+            'MAX_TOKENS' => StopReason::MaxTokens,
+            'TOOL_CALL' => StopReason::ToolCalls,
+            'ERROR' => StopReason::Other,
+            'TIMEOUT' => StopReason::Other,
+        ];
+
+        foreach ($reasons as $raw => $expected) {
+            expect(($this->stoppedBecause)($raw))->toBe($expected, $raw);
+        }
     });
 });
