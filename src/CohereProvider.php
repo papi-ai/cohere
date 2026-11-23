@@ -174,7 +174,11 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
     }
 
     /**
-     * Whether this provider supports structured output (JSON mode).
+     * Whether the schema can go unstated in the prompt.
+     *
+     * It cannot: Cohere compiles a schema, but only for a prompt that asks for JSON, and not
+     * beside tools. The agent states the schema, and the provider adds the response format
+     * wherever the API takes one.
      */
     public function supportsStructuredOutput(): bool
     {
@@ -258,6 +262,15 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
 
         if (isset($options['stopSequences'])) {
             $payload['stop_sequences'] = $options['stopSequences'];
+        }
+
+        // The API refuses a response format beside tools; the agent states the schema either way.
+        if (isset($options['outputSchema']) && empty($options['tools'])) {
+            $schema = (new OutputSchema())->forApi($options['outputSchema']);
+
+            if ($schema !== null) {
+                $payload['response_format'] = ['type' => 'json_object', 'json_schema' => $schema];
+            }
         }
 
         // Handle tools

@@ -57,6 +57,7 @@ CohereProvider::MODEL_EMBED_MULTILINGUAL  // 'embed-multilingual-v3.0'
 - Tool/function calling
 - Streaming support
 - Text embeddings
+- Structured output: the schema is enforced by Cohere on a request without tools, and stated in the prompt by the agent on every request
 
 ## Creating It by Name
 
