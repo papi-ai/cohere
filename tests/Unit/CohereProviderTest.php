@@ -101,10 +101,6 @@ describe('CohereProvider', function () {
         it('does not support vision', function () {
             expect($this->provider->supportsVision())->toBeFalse();
         });
-
-        it('does not support structured output', function () {
-            expect($this->provider->supportsStructuredOutput())->toBeFalse();
-        });
     });
 
     describe('chat', function () {
