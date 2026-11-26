@@ -25,6 +25,7 @@ use PapiAI\Core\Exception\RateLimitException;
 use PapiAI\Core\Message;
 use PapiAI\Core\Response;
 use PapiAI\Core\Role;
+use PapiAI\Core\Schema\WireSchema;
 use PapiAI\Core\StopReason;
 use PapiAI\Core\StreamChunk;
 use PapiAI\Core\ToolCall;
@@ -269,7 +270,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
             $schema = (new OutputSchema())->forApi($options['outputSchema']);
 
             if ($schema !== null) {
-                $payload['response_format'] = ['type' => 'json_object', 'json_schema' => $schema];
+                $payload['response_format'] = ['type' => 'json_object', 'json_schema' => (new WireSchema($schema))->toArray()];
             }
         }
 
@@ -350,7 +351,7 @@ class CohereProvider implements ProviderInterface, EmbeddingProviderInterface, T
                     'function' => [
                         'name' => $tool['name'],
                         'description' => $tool['description'],
-                        'parameters' => $tool['input_schema'] ?? $tool['parameters'] ?? ['type' => 'object', 'properties' => []],
+                        'parameters' => (new WireSchema($tool['input_schema'] ?? $tool['parameters'] ?? ['type' => 'object']))->toArray(),
                     ],
                 ];
             }
